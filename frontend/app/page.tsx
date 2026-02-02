@@ -6,6 +6,7 @@ import Product from "@/components/productcard"
 import axios from "axios"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import ProductHome from "./products/home/page"
 
 const HomePage = () => {
   const [products, setProducts] = useState([])
@@ -24,7 +25,7 @@ const HomePage = () => {
     <div>
       <Navbar/>
       <HeroSection/>
-      <Product/>
+      <ProductHome/>
       <Footer/>
     </div>
   )
