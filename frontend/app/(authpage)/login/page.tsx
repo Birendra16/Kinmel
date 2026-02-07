@@ -1,38 +1,43 @@
 "use client";
 
-import { useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { toast } from "sonner";
+
+
+const LoginSchema = Yup.object({
+  username: Yup.string()
+    .min(3, "Username must be at least 3 characters")
+    .required("Username is required"),
+
+  password: Yup.string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+});
 
 const LoginPage = () => {
   const router = useRouter();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
+  
+  const handleLogin = async (
+    values: { username: string; password: string },
+    setSubmitting: (v: boolean) => void
+  ) => {
     try {
-      const res = await axios.post(
+      const { data } = await axios.post(
         "https://fakestoreapi.com/auth/login",
-        {
-          username,
-          password,
-        }
+        values
       );
 
-      localStorage.setItem("token", res.data.token);
-
+      localStorage.setItem("token", data.token);
+      toast.success("Login successful!");
       router.push("/");
-    } catch (err) {
-      setError("Invalid username or password");
+    } catch (error: any) {
+      toast.error(error.response?.data || "Login failed. Please try again.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -41,9 +46,7 @@ const LoginPage = () => {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">
-            Kinmel
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-800">Kinmel</h1>
           <p className="text-sm text-gray-500 mt-1">
             Shop Smart, Shop Fast
           </p>
@@ -53,51 +56,60 @@ const LoginPage = () => {
           Login to your account
         </h2>
 
-        {error && (
-          <p className="bg-red-100 text-red-600 text-sm p-3 rounded-lg mb-4">
-            {error}
-          </p>
-        )}
+        <Formik
+          initialValues={{ username: "", password: "" }}
+          validationSchema={LoginSchema}
+          onSubmit={(values, { setSubmitting }) =>
+            handleLogin(values, setSubmitting)
+          }
+        >
+          {({ isSubmitting }) => (
+            <Form className="space-y-5">
 
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Username
-            </label>
-            <input
-              type="text"
-              placeholder="mor_2314"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-amber-500 outline-none"
-              required
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Username
+                </label>
+                <Field
+                  name="username"
+                  type="text"
+                  placeholder="username"
+                  className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-amber-500 outline-none"
+                />
+                <ErrorMessage
+                  name="username"
+                  component="p"
+                  className="text-red-500 text-xs mt-1"
+                />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-amber-500 outline-none"
-              required
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
+                <Field
+                  name="password"
+                  type="password"
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-amber-500 outline-none"
+                />
+                <ErrorMessage
+                  name="password"
+                  component="p"
+                  className="text-red-500 text-xs mt-1"
+                />
+              </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl font-semibold transition disabled:opacity-70"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-
-        
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl font-semibold transition disabled:opacity-70"
+              >
+                {isSubmitting ? "Logging in..." : "Login"}
+              </button>
+            </Form>
+          )}
+        </Formik>        
       </div>
     </div>
   );

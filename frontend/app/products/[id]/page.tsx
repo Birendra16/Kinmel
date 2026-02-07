@@ -1,40 +1,52 @@
-"use client"
-import axios from "axios"
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import Image from "next/image";
 
-const ProductDetailPage = () => {
-  const { id } = useParams()
-  const [product, setProduct] = useState()
+type Product = {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  category: string;
+  image: string;
+};
 
-  const fetchProduct = async () => {
-    const res = await axios.get(
-      `https://fakestoreapi.com/products/${id}`
-    )
-    setProduct(res.data)
+type PageProps = {
+  params: {
+    id: string;
+  };
+};
+
+const getProduct = async (id: string): Promise<Product> => {
+  const res = await fetch(`https://fakestoreapi.com/products/${id}`, {
+    next: { revalidate: 3600 },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch product: ${res.status}`);
   }
 
-  useEffect(() => {
-    if (id) fetchProduct()
-  }, [id])
+  return res.json();
+};
 
-  if (!product) {
-    return (
-      <div className="p-10 text-center text-lg">
-        Loading...
-      </div>
-    )
-  }
+const ProductDetailPage = async ({ params }: PageProps) => {
+  const {id} =await params;
+  if(!id){
+    return <div className="min-h-screen flex items-center justify-center">
+      <h2 className="text-2xl font-bold">Product ID is missing.</h2>
+    </div>
+    }
+  const product = await getProduct(id);
 
   return (
     <div className="min-h-screen p-6 flex items-center justify-center">
       <div className="max-w-4xl bg-white shadow-lg rounded-xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
         
         <div className="flex justify-center items-center">
-          <img
+          <Image
             src={product.image}
             alt={product.title}
-            className="h-80 object-contain"
+            width={300}
+            height={300}
+            className="object-contain"
           />
         </div>
 
@@ -55,13 +67,13 @@ const ProductDetailPage = () => {
             Category: {product.category}
           </p>
 
-          <button className="mt-auto bg-amber-600 text-white py-3 rounded-lg hover:bg-gray-800 transition">
+          <button className="mt-auto bg-amber-600 text-white py-3 rounded-lg hover:bg-amber-700 transition">
             Add to Cart
           </button>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ProductDetailPage
+export default ProductDetailPage;

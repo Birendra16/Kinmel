@@ -1,8 +1,4 @@
-"use client";
-
 import ProductCard from "@/components/productcard";
-import axios from "axios";
-import { useEffect, useState } from "react";
 
 type Product = {
   id: number;
@@ -11,45 +7,27 @@ type Product = {
   image: string;
 };
 
-const ProductHome = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+const getProducts = async (): Promise<Product[]> => {
+  const res = await fetch("https://fakestoreapi.com/products", {
+    next: { revalidate: 3600 }, // ISR: revalidate every 1 hour
+  });
 
-  const fetchData = async () => {
-    try {
-      const { data } = await axios.get<Product[]>(
-        "https://fakestoreapi.com/products"
-      );
-      setProducts(data);
-    } catch (err) {
-      setError("Failed to load products");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  if (loading) {
-    return <p className="text-center mt-10">Loading products...</p>;
+  if (!res.ok) {
+    throw new Error("Failed to fetch products");
   }
 
-  if (error) {
-    return (
-      <p className="text-center mt-10 text-red-500">
-        {error}
-      </p>
-    );
-  }
+  return res.json();
+};
 
+const ProductHome = async() => {
+  const products = await getProducts();
   return (
-    <div className="flex flex-wrap justify-center">
+    <div className="px-6 py-10">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       {products.map((item) => (
         <ProductCard key={item.id} item={item} />
       ))}
+      </div>
     </div>
   );
 };

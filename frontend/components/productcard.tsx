@@ -7,12 +7,12 @@ const ProductCard = ({ item }) => {
   const { id, image, title, price } = item;
 
   return (
-    <div className="bg-white m-4 p-6 w-[20%] min-h-[420px]
+    <div className="bg-white m-4 p-6 min-h-[420px]
                     rounded-lg border border-gray-200 shadow-lg
                     hover:shadow-xl transition-shadow
                     flex flex-col">
       
-      <div className="relative w-full h-50 mb-4">
+      <div className="relative w-full h-60 mb-4">
         <Image
           src={image}
           alt={title}
